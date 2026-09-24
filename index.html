@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ORV — Chapter 1 Prototype</title>
+  <style>
+    :root{--bg:#080a0f;--panel:rgba(8,10,15,.88);--line:#3e4657;--accent:#f4f4f4;--muted:#9da6b8;--orange:#e89b52}
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:Inter,system-ui,Segoe UI,sans-serif;color:#fff}
+    canvas{display:block;width:100%;height:100%}
+    #hud{position:fixed;inset:0;pointer-events:none}
+    .top{position:absolute;left:24px;right:24px;top:20px;display:flex;justify-content:space-between;align-items:flex-start}
+    .brand{font-weight:800;letter-spacing:.16em;font-size:13px;text-transform:uppercase;text-shadow:0 2px 8px #000}
+    .chapter{color:var(--muted);font-size:11px;margin-top:4px;letter-spacing:.08em}
+    .scenario{display:none;border:1px solid #747d90;background:rgba(12,14,20,.9);padding:10px 14px;min-width:270px}
+    .scenario b{display:block;font-size:12px;letter-spacing:.08em}.scenario span{font-size:11px;color:#b7becb}
+    #dialogue{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);width:min(900px,calc(100% - 32px));background:var(--panel);border:1px solid #343b4b;box-shadow:0 12px 40px rgba(0,0,0,.45);padding:18px 22px;display:none;pointer-events:auto}
+    #speaker{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--orange);margin-bottom:8px}
+    #text{font-size:17px;line-height:1.55;min-height:52px}.hint{margin-top:10px;color:#8992a3;font-size:11px}
+    #novel{position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,#1c1d22,#090a0d 65%);display:flex;align-items:center;justify-content:center;pointer-events:auto}
+    .phone{width:min(390px,88vw);height:min(720px,88vh);background:#101216;border:8px solid #191c22;border-radius:28px;box-shadow:0 30px 80px #000;overflow:hidden;position:relative}
+    .phonebar{height:36px;background:#17191e;display:flex;align-items:center;justify-content:center;font-size:10px;color:#858c9b}
+    .screen{height:calc(100% - 36px);overflow:auto;padding:22px 20px 40px;background:linear-gradient(#f1f0ec,#dddcd8);color:#202126}
+    .screen h1{font:700 22px Georgia,serif;margin:0 0 5px}.screen .author{font-size:11px;color:#777}.screen p{font:15px/1.7 Georgia,serif}
+    .quote{font:italic 14px/1.7 Georgia,serif;border-left:3px solid #888;padding-left:12px;margin:18px 0}
+    .comment{border-top:1px solid #c4c3bf;padding:14px 0;font:13px/1.5 Georgia,serif}.comment b{font-family:system-ui;font-size:10px;color:#666}
+    .message{margin-top:16px;background:#fff;border:1px solid #c7c6c2;border-radius:12px;padding:13px;font:13px/1.5 system-ui}.message strong{display:block;margin-bottom:6px}
+    #continueNovel{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:#151820;color:white;border:1px solid #697286;padding:10px 20px;border-radius:6px;cursor:pointer}
+    #startCard{display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:rgba(3,5,8,.72);pointer-events:auto}
+    .card{width:min(540px,calc(100% - 32px));background:rgba(11,13,18,.95);border:1px solid #41495a;padding:30px;text-align:center;box-shadow:0 30px 80px #000}
+    .card h2{margin:0 0 10px;font-size:26px}.card p{color:#aeb5c1;line-height:1.6;font-size:14px}.card button{margin-top:15px;padding:11px 25px;border:1px solid #7b8497;background:#202532;color:#fff;cursor:pointer}
+    #controls{display:none;position:absolute;left:24px;bottom:24px;color:#a9b1c0;font-size:11px;background:rgba(7,9,13,.72);padding:9px 12px;border:1px solid #2f3542}
+    #toast{position:absolute;top:88px;left:50%;transform:translateX(-50%);background:rgba(7,9,13,.92);border:1px solid #596274;padding:10px 15px;font-size:12px;display:none}
+  </style>
+</head>
+<body>
+  <div id="novel">
+    <div class="phone">
+      <div class="phonebar">WAYS OF SURVIVAL · COMPLETE</div>
+      <div class="screen">
+        <h1>Three Ways to Survive in a Ruined World</h1>
+        <div class="author">Author: tls123 · 3,149 chapters · COMPLETE</div>
+        <div class="quote">“There are three ways to survive in a ruined world. I have forgotten some of them now. However, one thing is certain: you who are currently reading these words will survive.”</div>
+        <p>Kim Dokja reached the final chapter of the novel that had accompanied him for years. It was not the most popular story. To him, it was the story.</p>
+        <div class="comment"><b>KIM DOKJA</b><br>Writer, thank you for everything. I’m looking forward to the epilogue.</div>
+        <div class="message"><strong>tls123</strong>Thank you.<br><br>I was able to complete it to the end thanks to you. I would like to send a special gift to you as a thank you.</div>
+        <div class="message"><strong>tls123</strong>The monetization starts tomorrow.</div>
+        <p>Dokja smiled. He knew nothing about what would happen to the world the next day.</p>
+      </div>
+    </div>
+    <button id="continueNovel">Continue</button>
+  </div>
+
+  <div id="hud">
+    <div class="top"><div><div class="brand">OMNISCIENT READER</div><div class="chapter">CHAPTER 1 · PROLOGUE</div></div><div class="scenario" id="scenario"><b>SCENARIO 1</b><span>Survive the first scenario</span></div></div>
+    <div id="toast"></div>
+    <div id="dialogue"><div id="speaker"></div><div id="text"></div><div class="hint">SPACE / ENTER — continue</div></div>
+    <div id="controls">WASD / ARROWS — move · E — interact</div>
+    <div id="startCard"><div class="card"><h2>The World Has Changed</h2><p>The novel you finished reading is no longer fiction. The first scenario has begun.</p><button id="startScenario">BEGIN SCENARIO</button></div></div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161/build/three.module.js';
+
+    const state={phase:'novel',dialogue:[],dialogueIndex:0,started:false};
+    const novel=document.querySelector('#novel'), startCard=document.querySelector('#startCard'), dialogue=document.querySelector('#dialogue');
+    const speaker=document.querySelector('#speaker'), text=document.querySelector('#text'), toast=document.querySelector('#toast');
+    const scenario=document.querySelector('#scenario'), controls=document.querySelector('#controls');
+
+    document.querySelector('#continueNovel').onclick=()=>beginWorld();
+    function beginWorld(){
+      novel.style.display='none';
+      state.phase='dialogue';
+      state.dialogue=[
+        ['Kim Dokja','The train is unusually quiet today.'],
+        ['Kim Dokja','I finished the novel. After all these years, that really is the end.'],
+        ['Kim Dokja','...Something feels wrong.'],
+        ['System','[SYSTEM MESSAGE] A scenario is being prepared.'],
+        ['Kim Dokja','No. That message...'],
+      ];
+      dialogue.style.display='block'; showDialogue();
+    }
+    function showDialogue(){
+      if(state.dialogueIndex>=state.dialogue.length){ dialogue.style.display='none'; startCard.style.display='flex'; return; }
+      speaker.textContent=state.dialogue[state.dialogueIndex][0]; text.textContent=state.dialogue[state.dialogueIndex][1];
+    }
+    function nextDialogue(){state.dialogueIndex++;showDialogue()}
+    window.addEventListener('keydown',e=>{if((e.code==='Space'||e.code==='Enter')&&state.phase==='dialogue'){e.preventDefault();nextDialogue()}});
+    document.querySelector('#startScenario').onclick=()=>startGame();
+
+    let scene,camera,renderer,player,clock,keys={},stationFloor,interactable,sign;
+    const obstacles=[], sceneGroup=new THREE.Group();
+    function startGame(){
+      state.phase='game';startCard.style.display='none';scenario.style.display='block';controls.style.display='block';
+      init3D(); toastMsg('SCENARIO 1 — SURVIVE');
+    }
+    function init3D(){
+      scene=new THREE.Scene();
+      scene.background=new THREE.Color(0x0a0d13);
+      scene.fog=new THREE.Fog(0x0a0d13,14,34);
+      camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,100);
+      renderer=new THREE.WebGLRenderer({antialias:true});
+      renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
+      renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.insertBefore(renderer.domElement,document.body.firstChild);
+      const hemi=new THREE.HemisphereLight(0x9fb2cf,0x15100c,1.4);scene.add(hemi);
+      const lamp=new THREE.DirectionalLight(0xffffff,2.2);lamp.position.set(-5,9,5);lamp.castShadow=true;scene.add(lamp);
+      stationFloor=new THREE.Mesh(new THREE.PlaneGeometry(34,24),new THREE.MeshStandardMaterial({color:0x252932,roughness:.88}));stationFloor.rotation.x=-Math.PI/2;stationFloor.receiveShadow=true;scene.add(stationFloor);
+      const tile=new THREE.GridHelper(34,34,0x444b58,0x303640);tile.position.y=.012;scene.add(tile);
+      makeStation();
+      player=makePlayer();player.position.set(0,.65,7);scene.add(player);
+      clock=new THREE.Clock();
+      addEventListener('resize',resize);requestAnimationFrame(loop);
+    }
+    function makeStation(){
+      const wallMat=new THREE.MeshStandardMaterial({color:0x3a3d45,roughness:.9});
+      for(const [x,z,sx,sz] of [[-16,0,1,24],[16,0,1,24],[0,-12,34,1]]){
+        const w=new THREE.Mesh(new THREE.BoxGeometry(sx,5,sz),wallMat);w.position.set(x,2.5,z);w.receiveShadow=true;scene.add(w);
+      }
+      for(let x=-12;x<=12;x+=6){const p=new THREE.Mesh(new THREE.CylinderGeometry(.22,.3,4.5,10),new THREE.MeshStandardMaterial({color:0x626875}));p.position.set(x,2.25,-5);p.castShadow=true;scene.add(p)}
+      const benchMat=new THREE.MeshStandardMaterial({color:0x171a20});
+      for(let x=-9;x<=9;x+=6){const b=new THREE.Mesh(new THREE.BoxGeometry(4,.45,1.2),benchMat);b.position.set(x,.55,-2);b.castShadow=true;scene.add(b)}
+      const signMat=new THREE.MeshStandardMaterial({color:0x11151c,emissive:0x182332,emissiveIntensity:1});
+      sign=new THREE.Mesh(new THREE.BoxGeometry(7,1.6,.2),signMat);sign.position.set(0,3.5,-11.3);scene.add(sign);
+      const canvas=document.createElement('canvas');canvas.width=700;canvas.height=160;const ctx=canvas.getContext('2d');ctx.fillStyle='#d9e5f5';ctx.font='bold 58px sans-serif';ctx.fillText('SCENARIO 1',35,70);ctx.font='28px sans-serif';ctx.fillText('THE FIRST TEST',35,115);
+      const tex=new THREE.CanvasTexture(canvas);const label=new THREE.Mesh(new THREE.PlaneGeometry(6.8,1.55),new THREE.MeshBasicMaterial({map:tex,transparent:true}));label.position.set(0,3.5,-11.18);scene.add(label);
+      interactable=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.2,1.2),new THREE.MeshStandardMaterial({color:0xe89b52,emissive:0x8c4d1c,emissiveIntensity:1}));interactable.position.set(0,.65,2);interactable.castShadow=true;scene.add(interactable);
+    }
+    function makePlayer(){
+      const g=new THREE.Group();
+      const body=new THREE.Mesh(new THREE.CapsuleGeometry(.38,.75,6,12),new THREE.MeshStandardMaterial({color:0x20242c,roughness:.55}));body.castShadow=true;body.position.y=.55;g.add(body);
+      const coat=new THREE.Mesh(new THREE.BoxGeometry(.72,.8,.35),new THREE.MeshStandardMaterial({color:0x0e1015,roughness:.7}));coat.position.y=.58;coat.castShadow=true;g.add(coat);
+      const head=new THREE.Mesh(new THREE.SphereGeometry(.27,16,12),new THREE.MeshStandardMaterial({color:0xd4ad91,roughness:.7}));head.position.y=1.25;head.castShadow=true;g.add(head);
+      return g;
+    }
+    function toastMsg(s){toast.textContent=s;toast.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>toast.style.display='none',2200)}
+    function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}
+    addEventListener('keydown',e=>keys[e.code]=true);addEventListener('keyup',e=>keys[e.code]=false);
+    function loop(){
+      requestAnimationFrame(loop);if(!renderer)return;
+      const dt=Math.min(clock.getDelta(),.04);
+      if(state.phase==='game'&&player){
+        const v=new THREE.Vector3((keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0),0,(keys.KeyS||keys.ArrowDown?1:0)-(keys.KeyW||keys.ArrowUp?1:0));
+        if(v.lengthSq()){v.normalize();player.position.addScaledVector(v,dt*4.5);player.rotation.y=Math.atan2(v.x,v.z)}
+        player.position.x=THREE.MathUtils.clamp(player.position.x,-14.5,14.5);player.position.z=THREE.MathUtils.clamp(player.position.z,-10.5,10.5);
+        const target=new THREE.Vector3(player.position.x,2.4,player.position.z+4.8);camera.position.lerp(new THREE.Vector3(player.position.x,8.2,player.position.z+9.5),.08);camera.lookAt(target);
+        interactable.rotation.y+=dt*1.2;
+        if(player.position.distanceTo(interactable.position)<1.7)toastMsg('Press E to investigate the strange object');
+        if(keys.KeyE&&player.position.distanceTo(interactable.position)<1.7){keys.KeyE=false;toastMsg('Probability: UNKNOWN · Information acquired')}
+      }
+      renderer.render(scene,camera);
+    }
+  </script>
+</body>
+</html>
